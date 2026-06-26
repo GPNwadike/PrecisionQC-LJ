@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrecisionQC-LJ</title>
+<link rel="stylesheet" href="assets/tabler-icons.css">
+<style>
+:root{
+  --bg-primary:#ffffff;--bg-secondary:#f6f6f4;--bg-tertiary:#f0efeb;
+  --text-primary:#1a1a18;--text-secondary:#6b6965;--text-muted:#9b9892;
+  --border-light:rgba(0,0,0,0.1);--border-mid:rgba(0,0,0,0.18);
+  --radius-md:8px;--radius-lg:12px;
+  --blue:#378ADD;--green:#639922;--amber:#BA7517;--red:#E24B4A;
+  --teal:#1D9E75;--blue-bg:#E6F1FB;--green-bg:#EAF3DE;--amber-bg:#FAEEDA;--red-bg:#FCEBEB;
+  --blue-text:#0C447C;--green-text:#27500A;--amber-text:#633806;--red-text:#791F1F;
+  --db-icon:#A32D2D;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg-primary:#1c1c1a;--bg-secondary:#252523;--bg-tertiary:#2e2e2b;
+  --text-primary:#f0efe9;--text-secondary:#9b9892;--text-muted:#6b6965;
+  --border-light:rgba(255,255,255,0.08);--border-mid:rgba(255,255,255,0.15);
+  --blue-bg:#0C447C;--green-bg:#27500A;--amber-bg:#633806;--red-bg:#791F1F;
+  --blue-text:#85B7EB;--green-text:#C0DD97;--amber-text:#FAC775;--red-text:#F09595;
+  --db-icon:#C99490;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg-tertiary);color:var(--text-primary);font-size:14px;min-height:100vh}
+.app{max-width:1100px;margin:0 auto;padding:1rem}
+.app-header{margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:.5px solid var(--border-light)}
+.app-header h1{font-size:18px;font-weight:500;color:var(--text-primary)}
+.app-header p{font-size:12px;color:var(--text-secondary);margin-top:3px}
+nav{display:flex;gap:0;border-bottom:.5px solid var(--border-light);margin-bottom:1rem;overflow-x:auto}
+.nt{padding:7px 14px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-secondary);white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.nt.on{color:var(--text-primary);border-bottom-color:var(--text-primary);font-weight:500}
+.pn{display:none}.pn.on{display:block}
+select,input[type=text],input[type=number],input[type=datetime-local]{
+  height:32px;padding:0 8px;border:.5px solid var(--border-mid);border-radius:var(--radius-md);
+  background:var(--bg-primary);color:var(--text-primary);font-size:13px;font-family:inherit}
+button.btn{height:32px;padding:0 13px;background:var(--bg-primary);border:.5px solid var(--border-mid);
+  border-radius:var(--radius-md);cursor:pointer;font-size:12px;color:var(--text-primary);
+  display:inline-flex;align-items:center;gap:5px;font-family:inherit}
+button.btn:hover{background:var(--bg-secondary)}
+button.btn.danger{color:var(--red-text);border-color:var(--red)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:.75rem}
+.scards{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:6px;margin-bottom:.75rem}
+.sc{background:var(--bg-secondary);border-radius:var(--radius-md);padding:8px 10px}
+.sc .l{font-size:11px;color:var(--text-secondary);margin-bottom:2px}
+.sc .v{font-size:16px;font-weight:500;color:var(--text-primary);line-height:1.2}
+.sc.warn .v{color:var(--amber-text)}.sc.bad .v{color:var(--red-text)}.sc.info .v{color:var(--blue-text)}
+.cw{position:relative;width:100%;height:320px;margin-bottom:.75rem}
+.leg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--text-secondary);
+  margin-bottom:.75rem;padding:6px 8px;background:var(--bg-secondary);border-radius:var(--radius-md)}
+.leg-i{display:flex;align-items:center;gap:4px}
+.leg-line{width:20px;height:0;border-top-width:2px;border-top-style:solid;display:inline-block}
+.leg-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:5px;margin-bottom:.75rem}
+.rb{background:var(--bg-primary);border:.5px solid var(--border-light);border-radius:var(--radius-md);
+  padding:7px 9px;display:flex;gap:7px}
+.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.rn{font-size:12px;font-weight:500;color:var(--text-primary)}
+.rd{font-size:11px;color:var(--text-secondary);margin-top:1px}
+.rs{font-size:11px;font-weight:500;margin-top:2px}
+.card{background:var(--bg-primary);border:.5px solid var(--border-light);border-radius:var(--radius-lg);
+  padding:.875rem;margin-bottom:.75rem}
+.lbl{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:3px}
+.fg{display:grid;gap:8px}
+.stitle{font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:.5rem}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{background:var(--bg-secondary);padding:5px 7px;text-align:left;font-weight:500;
+  color:var(--text-secondary);border-bottom:.5px solid var(--border-light);white-space:nowrap}
+td{padding:5px 7px;border-bottom:.5px solid var(--border-light);color:var(--text-primary)}
+tr.rej td{background:var(--red-bg);color:var(--red-text)}
+tr.wrn td{background:var(--amber-bg);color:var(--amber-text)}
+.db{background:none;border:none;cursor:pointer;color:var(--db-icon);padding:2px 4px;font-size:14px;opacity:0.85}
+.db:hover{opacity:1;text-decoration:underline}
+.db:hover{color:var(--red)}
+.lv-tabs{display:flex;gap:4px;margin-bottom:.75rem;flex-wrap:wrap}
+.lv-tab{padding:3px 11px;font-size:12px;border:.5px solid var(--border-mid);border-radius:20px;
+  cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit}
+.lv-tab.on{background:var(--text-primary);color:var(--bg-primary);border-color:var(--text-primary)}
+.badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;font-weight:500}
+.bok{background:var(--green-bg);color:var(--green-text)}
+.bwn{background:var(--amber-bg);color:var(--amber-text)}
+.bdn{background:var(--red-bg);color:var(--red-text)}
+.bna{background:var(--bg-secondary);color:var(--text-secondary)}
+.bhi{background:var(--blue-bg);color:var(--blue-text)}
+textarea{width:100%;height:58px;padding:7px;border:.5px solid var(--border-mid);
+  border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);
+  font-size:12px;font-family:monospace;resize:vertical}
+.notice{font-size:12px;color:var(--text-secondary);padding:12px;text-align:center}
+.lhdr{font-size:12px;font-weight:500;color:var(--text-secondary);padding:5px 0 3px;
+  border-top:.5px solid var(--border-light);margin-top:.5rem}
+.lhdr:first-child{border-top:none;margin-top:0}
+.mt-btn{padding:4px 12px;font-size:12px;border:.5px solid var(--border-mid);border-radius:20px;
+  cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit}
+.mt-btn.on.static{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
+.mt-btn.on.running{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.mt-btn.on.both{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.drift-panel{border-radius:var(--radius-md);padding:8px 10px;margin-bottom:.75rem;font-size:12px}
+.drift-row{display:flex;gap:12px;flex-wrap:wrap}
+.drift-item{display:flex;flex-direction:column;gap:1px}
+.drift-item .dk{font-size:11px;color:var(--text-secondary)}
+.drift-item .dv{font-size:13px;font-weight:500;color:var(--text-primary)}
+.action-step{display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid var(--border-light)}
+.action-step:last-child{border-bottom:none}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--bg-secondary);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;
+  color:var(--text-secondary);flex-shrink:0}
+.step-body .st{font-size:13px;font-weight:500;color:var(--text-primary)}
+.step-body .sd{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.mean-toggle{display:flex;gap:6px;align-items:center;margin-bottom:.75rem;flex-wrap:wrap}
+.rm-ctrl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <h1><i class="ti ti-chart-line" style="margin-right:6px"></i>PrecisionQC-LJ</h1>
+    <p>Multi-level clinical laboratory quality control — static mean &amp; running mean analysis with Westgard rules</p>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:4px">v1.0.1 — single-file build, no install required</p>
+  </div>
+
+  <nav>
+    <button class="nt on" onclick="tab('chart')"><i class="ti ti-chart-line"></i> Chart</button>
+    <button class="nt" onclick="tab('entry')"><i class="ti ti-pencil"></i> Data entry</button>
+    <button class="nt" onclick="tab('setup')"><i class="ti ti-adjustments"></i> Setup</button>
+    <button class="nt" onclick="tab('log')"><i class="ti ti-list"></i> Run log</button>
+    <button class="nt" onclick="tab('summary')"><i class="ti ti-table"></i> Summary</button>
+    <button class="nt" onclick="tab('action')"><i class="ti ti-alert-triangle"></i> Action protocol</button>
+  </nav>
+
+  <!-- CHART TAB -->
+  <div id="pn-chart" class="pn on">
+    <div class="row">
+      <select id="ch-analyte" onchange="onAnalyteChange()" style="min-width:155px"></select>
+      <select id="ch-view" onchange="renderChart()" style="width:105px">
+        <option value="0">All runs</option>
+        <option value="20">Last 20</option>
+        <option value="30">Last 30</option>
+        <option value="50">Last 50</option>
+      </select>
+    </div>
+    <div class="lv-tabs" id="lv-tabs"></div>
+    <div class="mean-toggle">
+      <span style="font-size:12px;color:var(--text-secondary)">Mean display:</span>
+      <button class="mt-btn static on" id="mt-static" onclick="setMeanMode('static')">Static mean</button>
+      <button class="mt-btn running" id="mt-running" onclick="setMeanMode('running')">Running mean</button>
+      <button class="mt-btn both" id="mt-both" onclick="setMeanMode('both')">Both</button>
+      <div class="rm-ctrl" id="rm-ctrl" style="display:none">
+        <span>Window:</span>
+        <select id="rm-window" onchange="renderChart()" style="width:80px">
+          <option value="5">5 runs</option>
+          <option value="10" selected>10 runs</option>
+          <option value="20">20 runs</option>
+          <option value="0">All prior</option>
+        </select>
+      </div>
+    </div>
+    <div class="scards" id="stat-cards"></div>
+    <div id="drift-panel" class="drift-panel" style="display:none"></div>
+    <div class="leg" id="chart-legend"></div>
+    <div class="cw"><canvas id="ljc"></canvas></div>
+    <div class="stitle">Westgard rule status</div>
+    <div class="rules" id="rule-badges"></div>
+  </div>
+
+  <!-- DATA ENTRY TAB -->
+  <div id="pn-entry" class="pn">
+    <div class="card">
+      <div class="stitle">Add QC result</div>
+      <div class="fg" style="grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><label class="lbl">Analyte</label><select id="en-analyte" style="width:100%"></select></div>
+        <div><label class="lbl">Control level</label><select id="en-level" style="width:100%"></select></div>
+      </div>
+      <div class="fg" style="grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><label class="lbl">Result</label><input id="en-val" type="number" step="any" placeholder="numeric value" style="width:100%"></div>
+        <div><label class="lbl">Date / time</label><input id="en-date" type="datetime-local" style="width:100%"></div>
+        <div><label class="lbl">Operator</label><input id="en-op" type="text" placeholder="initials" style="width:100%"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="addRun()"><i class="ti ti-plus"></i> Add run</button>
+        <button class="btn" onclick="tab('chart')"><i class="ti ti-chart-line"></i> View chart</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stitle">Bulk import — comma, semicolon or newline separated values</div>
+      <div class="fg" style="grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><label class="lbl">Analyte</label><select id="bi-analyte" style="width:100%"></select></div>
+        <div><label class="lbl">Level</label><select id="bi-level" style="width:100%"></select></div>
+      </div>
+      <textarea id="bi-vals" placeholder="e.g. 4.5, 4.8, 5.1, 4.9, 5.2 ..."></textarea>
+      <div style="margin-top:7px;display:flex;gap:8px;align-items:center">
+        <button class="btn" onclick="bulkAdd()"><i class="ti ti-upload"></i> Import</button>
+        <span id="bi-msg" style="font-size:12px;color:var(--text-secondary)"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETUP TAB -->
+  <div id="pn-setup" class="pn">
+    <div class="card">
+      <div class="stitle">Control material levels</div>
+      <div id="level-list" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="new-level-name" type="text" placeholder="e.g. Level 4 / Critical High" style="width:210px">
+        <button class="btn" onclick="addLevel()"><i class="ti ti-plus"></i> Add level</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stitle">Analytes</div>
+      <div id="analyte-list" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:5px"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="new-analyte" type="text" placeholder="Analyte name" style="width:165px">
+        <input id="new-unit" type="text" placeholder="Unit (e.g. mg/dL)" style="width:110px">
+        <button class="btn" onclick="addAnalyte()"><i class="ti ti-plus"></i> Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stitle">Target statistics — static mean &amp; SD per analyte per level</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;padding:6px 8px;background:var(--bg-secondary);border-radius:var(--radius-md)">
+        <strong>Static mean:</strong> your fixed baseline from the 20-day validation run. Governs SD bands and Westgard rules.<br>
+        <strong>Running mean:</strong> continuously recalculated rolling average to reveal gradual drift. Window is set per-chart in the Chart tab.
+      </div>
+      <div class="fg" style="grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><label class="lbl">Analyte</label><select id="tg-analyte" onchange="renderTargetForm()" style="width:100%"></select></div>
+      </div>
+      <div id="target-form"></div>
+      <button class="btn" onclick="saveTargets()" style="margin-top:8px"><i class="ti ti-device-floppy"></i> Save targets</button>
+      <span id="tg-msg" style="font-size:12px;color:var(--text-secondary);margin-left:8px"></span>
+    </div>
+    <div class="card">
+      <div class="stitle">Westgard rules — toggle on/off</div>
+      <div id="wg-toggles" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px"></div>
+    </div>
+    <div class="card">
+      <div class="stitle">Export &amp; import data</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="exportData()"><i class="ti ti-upload" style="transform:rotate(180deg)"></i> Export JSON</button>
+        <button class="btn" onclick="document.getElementById('import-file').click()"><i class="ti ti-upload"></i> Import JSON</button>
+        <input id="import-file" type="file" accept=".json" style="display:none" onchange="importData(event)">
+        <button class="btn danger" onclick="if(confirm('Delete ALL data?')){S.runs=[];sv();alert('All run data deleted.');}">Clear all data</button>
+      </div>
+      <p style="font-size:11px;color:var(--text-secondary);margin-top:6px">Data is auto-saved in your browser. Export to JSON to back up or transfer to another device.</p>
+    </div>
+  </div>
+
+  <!-- LOG TAB -->
+  <div id="pn-log" class="pn">
+    <div class="row">
+      <select id="lg-analyte" onchange="renderLog()" style="min-width:155px"></select>
+      <select id="lg-level" onchange="renderLog()" style="width:125px"></select>
+      <button class="btn danger" onclick="clearVisible()"><i class="ti ti-trash"></i> Clear filtered</button>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th style="width:28px">#</th>
+          <th style="width:120px">Analyte</th>
+          <th style="width:70px">Level</th>
+          <th style="width:62px">Result</th>
+          <th style="width:50px">Z-score</th>
+          <th style="width:68px">Run. mean</th>
+          <th style="width:60px">Drift</th>
+          <th style="width:60px">Status</th>
+          <th style="width:110px">Date/Time</th>
+          <th style="width:45px">Op.</th>
+          <th style="width:26px"></th>
+        </tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div id="pn-summary" class="pn">
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th style="width:115px">Analyte</th>
+          <th style="width:68px">Level</th>
+          <th style="width:38px">N</th>
+          <th style="width:62px">Static mean</th>
+          <th style="width:62px">Run. mean</th>
+          <th style="width:48px">Drift</th>
+          <th style="width:48px">SD</th>
+          <th style="width:50px">CV%</th>
+          <th style="width:55px">Bias%</th>
+          <th style="width:52px">Violations</th>
+          <th style="width:65px">Trend</th>
+        </tr></thead>
+        <tbody id="sum-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ACTION PROTOCOL TAB -->
+  <div id="pn-action" class="pn">
+    <div class="card">
+      <div class="stitle">Current violations requiring action</div>
+      <div id="violation-list"></div>
+    </div>
+    <div class="card">
+      <div class="stitle">Corrective action escalation ladder</div>
+      <div class="action-step"><div class="step-num">1</div><div class="step-body"><div class="st">Rerun the control</div><div class="sd">Rule out a simple random error or handling mistake. Do not report patient results until the control passes.</div></div></div>
+      <div class="action-step"><div class="step-num">2</div><div class="step-body"><div class="st">Use fresh materials</div><div class="sd">Open a new vial of control material and/or fresh reagent to rule out degradation or contamination.</div></div></div>
+      <div class="action-step"><div class="step-num">3</div><div class="step-body"><div class="st">Recalibrate the instrument</div><div class="sd">Run a full calibration sequence if fresh materials still fail.</div></div></div>
+      <div class="action-step"><div class="step-num">4</div><div class="step-body"><div class="st">Perform maintenance</div><div class="sd">Execute deep cleaning, lamp check, or hardware maintenance as indicated by the error type.</div></div></div>
+      <div class="action-step"><div class="step-num">5</div><div class="step-body"><div class="st">Document everything</div><div class="sd">Log the rule violated, root cause identified, and all corrective actions taken in the QC ledger before resuming patient testing.</div></div></div>
+    </div>
+    <div class="card">
+      <div class="stitle">Error type reference</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+        <div style="padding:8px;background:var(--bg-secondary);border-radius:var(--radius-md)">
+          <div style="font-weight:500;margin-bottom:4px">Random errors — sudden spikes</div>
+          <div style="color:var(--text-secondary)">1₃ₛ — single point outside ±3SD<br>R₄ₛ — 4SD spread within one run<br><em>Cause: pipette error, air bubble, voltage spike</em></div>
+        </div>
+        <div style="padding:8px;background:var(--bg-secondary);border-radius:var(--radius-md)">
+          <div style="font-weight:500;margin-bottom:4px">Systematic errors — trends &amp; shifts</div>
+          <div style="color:var(--text-secondary)">2₂ₛ, 4₁ₛ, 10ₓ, 7ₜ — consecutive pattern<br>Running mean drifting from static mean<br><em>Cause: reagent decay, calibration drift, aging optics</em></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/chart.umd.js"></script>
+<script>
+// ── VERSION ───────────────────────────────────────────────────────────────────
+// Bump this string whenever you ship an edited copy to a lab so support
+// requests can reference exactly which build is running.
+const APP_VERSION = '1.0.1';
+console.log('PrecisionQC-LJ build', APP_VERSION);
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let S={
+  levels:[{id:'L1',name:'Level 1 (Low)'},{id:'L2',name:'Level 2 (Normal)'},{id:'L3',name:'Level 3 (High)'}],
+  analytes:[
+    {id:'albumin',name:'Albumin',unit:'g/dL'},{id:'glucose',name:'Glucose',unit:'mg/dL'},
+    {id:'sodium',name:'Sodium',unit:'mEq/L'},{id:'potassium',name:'Potassium',unit:'mEq/L'},
+    {id:'creatinine',name:'Creatinine',unit:'mg/dL'},{id:'alt',name:'ALT/SGPT',unit:'U/L'},
+    {id:'ast',name:'AST/SGOT',unit:'U/L'},{id:'ck',name:'CK (Creatine Kinase)',unit:'U/L'},
+    {id:'cholesterol',name:'Cholesterol (Total)',unit:'mg/dL'},{id:'triglycerides',name:'Triglycerides',unit:'mg/dL'},
+    {id:'hdl',name:'Cholesterol (HDL)',unit:'mg/dL'},{id:'ldl',name:'Cholesterol (LDL)',unit:'mg/dL'},
+    {id:'calcium',name:'Calcium',unit:'mg/dL'},{id:'phosphorus',name:'Phosphorus',unit:'mg/dL'},
+    {id:'magnesium',name:'Magnesium',unit:'mEq/L'},{id:'urea',name:'Urea (BUN)',unit:'mg/dL'},
+    {id:'uric',name:'Uric Acid',unit:'mg/dL'},{id:'protein',name:'Total Protein',unit:'g/dL'},
+    {id:'bilit',name:'Bilirubin (Total)',unit:'mg/dL'},{id:'bilid',name:'Bilirubin (Direct)',unit:'mg/dL'},
+    {id:'alp',name:'Alkaline Phosphatase',unit:'U/L'},{id:'ggt',name:'GGT',unit:'U/L'},
+    {id:'amylase',name:'Amylase',unit:'U/L'},{id:'lipase',name:'Lipase',unit:'U/L'},
+    {id:'iron',name:'Iron',unit:'μg/dL'},{id:'ferritin',name:'Ferritin',unit:'ng/mL'},
+    {id:'tsh',name:'TSH',unit:'mIU/L'},{id:'t4f',name:'Free T4',unit:'ng/dL'},
+    {id:'crp',name:'C-Reactive Protein',unit:'mg/L'},{id:'hba1c',name:'HbA1c',unit:'%'},
+  ],
+  targets:{},runs:[],
+  rules:{r12s:true,r13s:true,r22s:true,rR4s:true,r41s:true,r10x:true,r7t:true},
+  curAnalyte:'',curLevel:'L1',meanMode:'static',
+};
+
+const RDEFS=[
+  {k:'r12s',label:'1₂ₛ',desc:'1 point > 2SD — warning trigger',type:'warn'},
+  {k:'r13s',label:'1₃ₛ',desc:'1 point > 3SD — random error',type:'reject'},
+  {k:'r22s',label:'2₂ₛ',desc:'2 consecutive > 2SD same side',type:'reject'},
+  {k:'rR4s',label:'R₄ₛ',desc:'Range > 4SD within batch',type:'reject'},
+  {k:'r41s',label:'4₁ₛ',desc:'4 consecutive > 1SD same side',type:'warn'},
+  {k:'r10x',label:'10ₓ',desc:'10 consecutive same side of mean',type:'warn'},
+  {k:'r7t', label:'7ₜ', desc:'7 consecutive monotone trend',type:'warn'},
+];
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+function sv(){try{localStorage.setItem('ljqc_v3',JSON.stringify(S));}catch(e){}}
+function ld(){try{const d=localStorage.getItem('ljqc_v3');if(d){const p=JSON.parse(d);if(p.levels)S.levels=p.levels;if(p.analytes)S.analytes=p.analytes;if(p.targets)S.targets=p.targets;if(p.runs)S.runs=p.runs;if(p.rules)S.rules=p.rules;if(p.meanMode)S.meanMode=p.meanMode;}}catch(e){}}
+function exportData(){
+  const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='precisionqc-lj-data-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function importData(evt){
+  const f=evt.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{try{const p=JSON.parse(e.target.result);Object.assign(S,p);sv();alert('Data imported. Reloading...');location.reload();}catch(err){alert('Invalid JSON file.');}};
+  r.readAsText(f);evt.target.value='';
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function gtk(a,l){return a+'__'+l;}
+function getTarget(aId,lId){
+  const k=gtk(aId,lId);
+  if(S.targets[k])return S.targets[k];
+  const vals=S.runs.filter(r=>r.aId===aId&&r.lId===lId).map(r=>r.val);
+  if(vals.length<2)return null;
+  const mean=vals.reduce((a,b)=>a+b)/vals.length;
+  const sd=Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/(vals.length-1));
+  return{mean,sd,auto:true};
+}
+function calcRunningMean(vals,win){
+  return vals.map((v,i)=>{
+    const w=win>0?win:i+1;
+    const start=Math.max(0,i-w+1);
+    const sl=vals.slice(start,i+1);
+    return sl.reduce((a,b)=>a+b)/sl.length;
+  });
+}
+function calcStats(vals){
+  if(!vals.length)return null;
+  const mean=vals.reduce((a,b)=>a+b)/vals.length;
+  const sd=vals.length>1?Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/(vals.length-1)):0;
+  return{mean,sd,cv:mean?sd/mean*100:0,n:vals.length};
+}
+function westgard(vals,mean,sd){
+  const z=vals.map(v=>(v-mean)/sd);const n=z.length;
+  const viol=new Set(),rej=new Set();
+  for(let i=0;i<n;i++){if(S.rules.r12s&&Math.abs(z[i])>2)viol.add(i);if(S.rules.r13s&&Math.abs(z[i])>3)rej.add(i);}
+  for(let i=1;i<n;i++){
+    if(S.rules.r22s&&Math.abs(z[i])>2&&Math.abs(z[i-1])>2&&Math.sign(z[i])===Math.sign(z[i-1])){viol.add(i);viol.add(i-1);}
+    if(S.rules.rR4s&&Math.abs(z[i]-z[i-1])>4){rej.add(i);rej.add(i-1);}
+  }
+  for(let i=3;i<n;i++)if(S.rules.r41s&&([i,i-1,i-2,i-3].every(j=>z[j]>1)||[i,i-1,i-2,i-3].every(j=>z[j]<-1)))[i,i-1,i-2,i-3].forEach(j=>viol.add(j));
+  for(let i=9;i<n;i++){const seg=z.slice(i-9,i+1);if(S.rules.r10x&&(seg.every(v=>v>0)||seg.every(v=>v<0)))for(let j=i-9;j<=i;j++)viol.add(j);}
+  for(let i=6;i<n;i++){const seg=z.slice(i-6,i+1);const diffs=seg.slice(1).map((v,k)=>v-seg[k]);if(S.rules.r7t&&(diffs.every(d=>d>0)||diffs.every(d=>d<0)))for(let j=i-6;j<=i;j++)viol.add(j);}
+  const fired={};
+  RDEFS.forEach(rd=>{
+    if(!S.rules[rd.k]){fired[rd.k]='off';return;}
+    if(rd.k==='r13s')fired[rd.k]=rej.size>0;
+    else if(rd.k==='r12s')fired[rd.k]=viol.size>0;
+    else if(rd.k==='r22s'){fired[rd.k]=false;for(let i=1;i<n;i++)if(Math.abs(z[i])>2&&Math.abs(z[i-1])>2&&Math.sign(z[i])===Math.sign(z[i-1])){fired[rd.k]=true;break;}}
+    else if(rd.k==='rR4s'){fired[rd.k]=false;for(let i=1;i<n;i++)if(Math.abs(z[i]-z[i-1])>4){fired[rd.k]=true;break;}}
+    else if(rd.k==='r41s'){fired[rd.k]=false;for(let i=3;i<n;i++)if([i,i-1,i-2,i-3].every(j=>z[j]>1)||[i,i-1,i-2,i-3].every(j=>z[j]<-1)){fired[rd.k]=true;break;}}
+    else if(rd.k==='r10x'){fired[rd.k]=false;for(let i=9;i<n;i++){const seg=z.slice(i-9,i+1);if(seg.every(v=>v>0)||seg.every(v=>v<0)){fired[rd.k]=true;break;}}}
+    else if(rd.k==='r7t'){fired[rd.k]=false;for(let i=6;i<n;i++){const seg=z.slice(i-6,i+1);const diffs=seg.slice(1).map((v,k)=>v-seg[k]);if(diffs.every(d=>d>0)||diffs.every(d=>d<0)){fired[rd.k]=true;break;}}}
+  });
+  return{viol,rej,fired,z};
+}
+function calcTrend(vals){
+  if(vals.length<3)return 0;
+  const n=vals.length,mx=(n-1)/2,my=vals.reduce((a,b)=>a+b)/n;
+  const num=vals.reduce((a,v,i)=>a+(i-mx)*(v-my),0);
+  const den=vals.reduce((a,_,i)=>a+(i-mx)**2,0);
+  return den?num/den:0;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function tab(id){
+  document.querySelectorAll('.nt').forEach((b,i)=>b.classList.toggle('on',['chart','entry','setup','log','summary','action'][i]===id));
+  document.querySelectorAll('.pn').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pn-'+id).classList.add('on');
+  if(id==='chart'){popChartSels();renderChart();}
+  if(id==='entry')popEntrySels();
+  if(id==='setup')renderSetup();
+  if(id==='log'){popLogSels();renderLog();}
+  if(id==='summary')renderSummary();
+  if(id==='action')renderAction();
+}
+
+// ── MEAN MODE ─────────────────────────────────────────────────────────────────
+function setMeanMode(m){
+  S.meanMode=m;sv();
+  ['static','running','both'].forEach(x=>document.getElementById('mt-'+x).classList.toggle('on',x===m));
+  document.getElementById('rm-ctrl').style.display=(m==='running'||m==='both')?'flex':'none';
+  renderChart();
+}
+
+// ── CHART ─────────────────────────────────────────────────────────────────────
+let ljChart=null;
+function renderChart(){
+  const aId=document.getElementById('ch-analyte').value;
+  const lId=S.curLevel;
+  const vn=parseInt(document.getElementById('ch-view').value)||0;
+  const rmW=parseInt(document.getElementById('rm-window')?.value||10);
+  const sc=document.getElementById('stat-cards'),rb=document.getElementById('rule-badges'),dp=document.getElementById('drift-panel');
+  const analyte=S.analytes.find(a=>a.id===aId);
+  if(!aId||!analyte){sc.innerHTML='<div class="notice">Select an analyte to view the chart</div>';rb.innerHTML='';dp.style.display='none';if(ljChart){ljChart.destroy();ljChart=null;}return;}
+  let runs=S.runs.filter(r=>r.aId===aId&&r.lId===lId);
+  if(vn>0)runs=runs.slice(-vn);
+  const vals=runs.map(r=>r.val);
+  const tgt=getTarget(aId,lId);
+  if(!vals.length){sc.innerHTML='<div class="notice">No data for this analyte/level. Add runs via the Data entry tab.</div>';rb.innerHTML='';dp.style.display='none';if(ljChart){ljChart.destroy();ljChart=null;}return;}
+  const st=calcStats(vals);
+  const sMean=tgt?tgt.mean:st.mean;
+  const sSd=tgt?tgt.sd:st.sd;
+  const rmVals=calcRunningMean(vals,rmW);
+  const curRM=rmVals[rmVals.length-1];
+  const rmDrift=sMean?((curRM-sMean)/sMean*100):0;
+  const driftAbs=Math.abs(rmDrift);
+  const wg=sSd>0?westgard(vals,sMean,sSd):{viol:new Set(),rej:new Set(),fired:{},z:[]};
+  const bias=tgt?((st.mean-tgt.mean)/tgt.mean*100):0;
+  sc.innerHTML=`
+    <div class="sc"><div class="l">N runs</div><div class="v">${vals.length}</div></div>
+    <div class="sc"><div class="l">Static mean</div><div class="v">${sMean.toFixed(3)}</div></div>
+    <div class="sc info"><div class="l">Running mean</div><div class="v">${curRM.toFixed(3)}</div></div>
+    <div class="sc ${driftAbs>5?'bad':driftAbs>2?'warn':''}"><div class="l">Mean drift</div><div class="v">${rmDrift>0?'+':''}${rmDrift.toFixed(1)}%</div></div>
+    <div class="sc"><div class="l">SD</div><div class="v">${st.sd.toFixed(3)}</div></div>
+    <div class="sc ${st.cv>10?'bad':st.cv>5?'warn':''}"><div class="l">CV%</div><div class="v">${st.cv.toFixed(1)}%</div></div>
+    ${tgt?`<div class="sc ${Math.abs(bias)>5?'warn':''}"><div class="l">Bias%</div><div class="v">${bias>0?'+':''}${bias.toFixed(1)}%</div></div>`:''}
+    <div class="sc ${wg.rej.size>0?'bad':wg.viol.size>0?'warn':''}"><div class="l">Violations</div><div class="v">${wg.viol.size+wg.rej.size}</div></div>
+  `;
+  if(driftAbs>1){
+    dp.style.display='block';
+    const bg=driftAbs>5?'var(--red-bg)':driftAbs>2?'var(--amber-bg)':'var(--green-bg)';
+    const txt=driftAbs>5?'Significant drift — investigate systematically':driftAbs>2?'Moderate drift — monitor closely':'Minor drift — within acceptable range';
+    dp.style.background=bg;
+    dp.innerHTML=`<div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">Running mean vs static mean — drift analysis</div>
+    <div class="drift-row">
+      <div class="drift-item"><div class="dk">Static mean</div><div class="dv">${sMean.toFixed(3)}</div></div>
+      <div class="drift-item"><div class="dk">Running mean (last ${rmW||'all'} runs)</div><div class="dv">${curRM.toFixed(3)}</div></div>
+      <div class="drift-item"><div class="dk">Absolute drift</div><div class="dv">${(curRM-sMean)>0?'+':''}${(curRM-sMean).toFixed(3)}</div></div>
+      <div class="drift-item"><div class="dk">Drift %</div><div class="dv"><span class="badge ${driftAbs>5?'bdn':driftAbs>2?'bwn':'bok'}">${rmDrift>0?'+':''}${rmDrift.toFixed(2)}%</span></div></div>
+      <div class="drift-item"><div class="dk">Assessment</div><div class="dv" style="font-size:12px">${txt}</div></div>
+    </div>`;
+  }else{dp.style.display='none';}
+  const unit=analyte.unit?' ('+analyte.unit+')':'';
+  const labels=runs.map((r,i)=>r.date?new Date(r.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):'R'+(i+1));
+  const pColors=vals.map((_,i)=>wg.rej.has(i)?'#E24B4A':wg.viol.has(i)?'#BA7517':'#378ADD');
+  const pR=vals.map((_,i)=>wg.rej.has(i)||wg.viol.has(i)?7:4);
+  const mk=y=>vals.map(()=>y);
+  const showS=S.meanMode==='static'||S.meanMode==='both';
+  const showR=S.meanMode==='running'||S.meanMode==='both';
+  const datasets=[{label:'Result',data:vals,borderColor:'#378ADD',backgroundColor:'transparent',pointBackgroundColor:pColors,pointBorderColor:pColors,pointRadius:pR,pointHoverRadius:8,tension:0.2,borderWidth:2,order:1}];
+  if(showS&&sSd>0){
+    datasets.push({label:'Static mean',data:mk(sMean),borderColor:'#639922',borderWidth:2,pointRadius:0,fill:false,order:2});
+    datasets.push({label:'+1SD',data:mk(sMean+sSd),borderColor:'rgba(99,153,34,0.3)',borderDash:[5,5],borderWidth:1,pointRadius:0,fill:false,order:3});
+    datasets.push({label:'-1SD',data:mk(sMean-sSd),borderColor:'rgba(99,153,34,0.3)',borderDash:[5,5],borderWidth:1,pointRadius:0,fill:false,order:3});
+    datasets.push({label:'+2SD',data:mk(sMean+2*sSd),borderColor:'rgba(186,117,23,0.65)',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false,order:3});
+    datasets.push({label:'-2SD',data:mk(sMean-2*sSd),borderColor:'rgba(186,117,23,0.65)',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false,order:3});
+    datasets.push({label:'+3SD',data:mk(sMean+3*sSd),borderColor:'rgba(226,75,74,0.7)',borderDash:[3,4],borderWidth:1.5,pointRadius:0,fill:false,order:3});
+    datasets.push({label:'-3SD',data:mk(sMean-3*sSd),borderColor:'rgba(226,75,74,0.7)',borderDash:[3,4],borderWidth:1.5,pointRadius:0,fill:false,order:3});
+  }
+  if(showR)datasets.push({label:'Running mean',data:rmVals,borderColor:'#1D9E75',borderWidth:2,borderDash:[8,3],pointRadius:0,pointHoverRadius:5,fill:false,order:2,tension:0.3});
+  document.getElementById('chart-legend').innerHTML=`
+    <span class="leg-i"><span class="leg-dot" style="background:#378ADD"></span>Result</span>
+    ${showS?`<span class="leg-i"><span class="leg-line" style="border-top-color:#639922"></span>Static mean</span>
+    <span class="leg-i"><span class="leg-line" style="border-top-color:rgba(186,117,23,0.7);border-top-style:dashed"></span>±2SD</span>
+    <span class="leg-i"><span class="leg-line" style="border-top-color:rgba(226,75,74,0.7);border-top-style:dashed"></span>±3SD</span>`:''}
+    ${showR?`<span class="leg-i"><span class="leg-line" style="border-top-color:#1D9E75;border-top-style:dashed"></span>Running mean</span>`:''}
+    <span class="leg-i"><span class="leg-dot" style="background:#E24B4A"></span>Rejection</span>
+    <span class="leg-i"><span class="leg-dot" style="background:#BA7517"></span>Warning</span>
+  `;
+  const canvas=document.getElementById('ljc');
+  if(ljChart){ljChart.destroy();ljChart=null;}
+  ljChart=new Chart(canvas,{
+    type:'line',data:{labels,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:250},
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label(ctx){
+        if(ctx.datasetIndex===0){
+          const i=ctx.dataIndex;
+          const z=sSd>0?((vals[i]-sMean)/sSd):0;
+          const flag=wg.rej.has(i)?' ⚠ REJECT':wg.viol.has(i)?' ⚑ warning':'';
+          return[`Result: ${ctx.parsed.y.toFixed(3)}${unit} (z=${z.toFixed(2)})${flag}`,`Running mean here: ${rmVals[i].toFixed(3)}`];
+        }
+        return`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)}`;
+      }}}},
+      scales:{
+        x:{ticks:{maxRotation:45,font:{size:10}},grid:{color:'rgba(128,128,128,0.06)'}},
+        y:{grid:{color:'rgba(128,128,128,0.06)'},ticks:{font:{size:11},callback:v=>v.toFixed(2)},
+          title:{display:true,text:analyte.name+unit,font:{size:11},color:'#888'}}
+      }
+    }
+  });
+  rb.innerHTML=RDEFS.map(d=>{
+    const f=wg.fired[d.k];const off=f==='off',fired=f===true;
+    const dotCol=off?'#B4B2A9':!fired?'#639922':d.type==='reject'?'#E24B4A':'#BA7517';
+    const statusTxt=off?'Off':!fired?'Pass':d.type==='reject'?'REJECT':'Warning';
+    const statusCol=off?'var(--text-secondary)':!fired?'#3B6D11':d.type==='reject'?'#791F1F':'#633806';
+    return`<div class="rb" style="${fired?'border-color:'+(d.type==='reject'?'#F09595':'#FAC775'):''}">
+      <span class="rdot" style="background:${dotCol}"></span>
+      <div><div class="rn">${d.label}</div><div class="rd">${d.desc}</div><div class="rs" style="color:${statusCol}">${statusTxt}</div></div>
+    </div>`;
+  }).join('');
+}
+function onAnalyteChange(){S.curAnalyte=document.getElementById('ch-analyte').value;renderLevelTabs();renderChart();}
+function setLevel(lId){S.curLevel=lId;renderLevelTabs();renderChart();}
+function renderLevelTabs(){
+  document.getElementById('lv-tabs').innerHTML=S.levels.map(l=>`<button class="lv-tab${l.id===S.curLevel?' on':''}" onclick="setLevel('${l.id}')">${l.name}</button>`).join('');
+}
+function popChartSels(){
+  const sel=document.getElementById('ch-analyte');
+  const cur=sel.value||S.curAnalyte||S.analytes[0]?.id||'';
+  sel.innerHTML=S.analytes.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  sel.value=cur||S.analytes[0]?.id||'';
+  S.curAnalyte=sel.value;
+  if(!S.curLevel&&S.levels.length)S.curLevel=S.levels[0].id;
+  renderLevelTabs();
+  setMeanMode(S.meanMode||'static');
+}
+
+// ── ENTRY ─────────────────────────────────────────────────────────────────────
+function popEntrySels(){
+  const html=S.analytes.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  ['en-analyte','bi-analyte'].forEach(id=>document.getElementById(id).innerHTML=html);
+  const lhtml=S.levels.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  ['en-level','bi-level'].forEach(id=>document.getElementById(id).innerHTML=lhtml);
+  const now=new Date();now.setSeconds(0,0);
+  document.getElementById('en-date').value=now.toISOString().slice(0,16);
+}
+function addRun(){
+  const aId=document.getElementById('en-analyte').value;
+  const lId=document.getElementById('en-level').value;
+  const val=parseFloat(document.getElementById('en-val').value);
+  if(!aId||isNaN(val)){alert('Select an analyte and enter a numeric result.');return;}
+  S.runs.push({id:Date.now()+'_'+Math.random(),aId,lId,val,date:document.getElementById('en-date').value||new Date().toISOString(),op:document.getElementById('en-op').value.trim()});
+  sv();document.getElementById('en-val').value='';document.getElementById('en-op').value='';
+  S.curAnalyte=aId;S.curLevel=lId;tab('chart');
+}
+function bulkAdd(){
+  const aId=document.getElementById('bi-analyte').value;
+  const lId=document.getElementById('bi-level').value;
+  const vals=document.getElementById('bi-vals').value.split(/[\s,;\n]+/).map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+  if(!vals.length){alert('No valid numbers found.');return;}
+  const base=new Date();
+  vals.forEach((v,i)=>S.runs.push({id:Date.now()+'_'+i,aId,lId,val:v,date:new Date(base.getTime()-((vals.length-1-i)*8*3600000)).toISOString(),op:'import'}));
+  sv();document.getElementById('bi-vals').value='';
+  const m=document.getElementById('bi-msg');m.textContent=`${vals.length} runs imported.`;
+  setTimeout(()=>m.textContent='',3000);
+}
+
+// ── SETUP ─────────────────────────────────────────────────────────────────────
+function renderSetup(){
+  document.getElementById('level-list').innerHTML=S.levels.map((l,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <span style="font-size:13px;min-width:195px">${l.name}</span>
+      ${S.levels.length>1?`<button class="db" onclick="removeLevel(${i})"><i class="ti ti-x"></i></button>`:''}
+    </div>`).join('');
+  document.getElementById('analyte-list').innerHTML=S.analytes.map((a,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:3px;background:var(--bg-secondary);border-radius:20px;padding:3px 9px;font-size:12px">
+      ${a.name}${a.unit?' ('+a.unit+')':''}
+      <button class="db" onclick="removeAnalyte(${i})" style="padding:0 1px"><i class="ti ti-x" style="font-size:11px"></i></button>
+    </span>`).join('');
+  const ts=document.getElementById('tg-analyte');
+  ts.innerHTML=S.analytes.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  renderTargetForm();renderWgToggles();
+}
+function renderTargetForm(){
+  const aId=document.getElementById('tg-analyte').value;
+  document.getElementById('target-form').innerHTML=S.levels.map(l=>{
+    const k=gtk(aId,l.id);const t=S.targets[k]||{};const auto=getTarget(aId,l.id);
+    return`<div class="lhdr">${l.name}</div>
+    <div class="fg" style="grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;margin-bottom:4px">
+      <div><label class="lbl">Static mean</label><input id="tm-${l.id}" type="number" step="any" style="width:100%" value="${t.mean!==undefined?t.mean.toFixed(4):auto&&auto.auto?auto.mean.toFixed(4):''}"></div>
+      <div><label class="lbl">SD</label><input id="ts-${l.id}" type="number" step="any" style="width:100%" value="${t.sd!==undefined?t.sd.toFixed(4):auto&&auto.auto?auto.sd.toFixed(4):''}"></div>
+      <div><label class="lbl">Lower limit (−3SD)</label><input id="tlo-${l.id}" type="number" step="any" style="width:100%" value="${t.lo!==undefined?t.lo.toFixed(4):auto&&auto.auto?(auto.mean-3*auto.sd).toFixed(4):''}"></div>
+      <div><label class="lbl">Upper limit (+3SD)</label><input id="thi-${l.id}" type="number" step="any" style="width:100%" value="${t.hi!==undefined?t.hi.toFixed(4):auto&&auto.auto?(auto.mean+3*auto.sd).toFixed(4):''}"></div>
+    </div>${auto&&auto.auto?`<div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px">Auto-calculated from ${S.runs.filter(r=>r.aId===aId&&r.lId===l.id).length} runs</div>`:''}`;
+  }).join('');
+}
+function saveTargets(){
+  const aId=document.getElementById('tg-analyte').value;
+  S.levels.forEach(l=>{
+    const mean=parseFloat(document.getElementById('tm-'+l.id).value);
+    const sd=parseFloat(document.getElementById('ts-'+l.id).value);
+    const lo=parseFloat(document.getElementById('tlo-'+l.id).value);
+    const hi=parseFloat(document.getElementById('thi-'+l.id).value);
+    if(!isNaN(mean)&&!isNaN(sd))S.targets[gtk(aId,l.id)]={mean,sd,...(!isNaN(lo)?{lo}:{}),...(!isNaN(hi)?{hi}:{})};
+  });
+  sv();const m=document.getElementById('tg-msg');m.textContent='Saved.';setTimeout(()=>m.textContent='',2000);
+}
+function addLevel(){const n=document.getElementById('new-level-name').value.trim();if(!n)return;S.levels.push({id:'L'+Date.now(),name:n});document.getElementById('new-level-name').value='';sv();renderSetup();renderLevelTabs();}
+function removeLevel(i){if(S.levels.length<=1)return;if(!confirm('Remove level '+S.levels[i].name+'?'))return;S.levels.splice(i,1);sv();renderSetup();renderLevelTabs();}
+function addAnalyte(){const n=document.getElementById('new-analyte').value.trim();const u=document.getElementById('new-unit').value.trim();if(!n)return;S.analytes.push({id:'a'+Date.now(),name:n,unit:u});document.getElementById('new-analyte').value='';document.getElementById('new-unit').value='';sv();renderSetup();popChartSels();}
+function removeAnalyte(i){if(!confirm('Remove analyte '+S.analytes[i].name+'?'))return;S.analytes.splice(i,1);sv();renderSetup();}
+function renderWgToggles(){
+  document.getElementById('wg-toggles').innerHTML=RDEFS.map(d=>`
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer">
+      <input type="checkbox" ${S.rules[d.k]?'checked':''} onchange="toggleRule('${d.k}',this.checked)" style="width:14px;height:14px">
+      <span><strong>${d.label}</strong> — ${d.desc}</span>
+    </label>`).join('');
+}
+function toggleRule(k,v){S.rules[k]=v;sv();renderChart();}
+
+// ── LOG ───────────────────────────────────────────────────────────────────────
+function popLogSels(){
+  document.getElementById('lg-analyte').innerHTML='<option value="">All analytes</option>'+S.analytes.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  document.getElementById('lg-level').innerHTML='<option value="">All levels</option>'+S.levels.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+}
+function renderLog(){
+  const aF=document.getElementById('lg-analyte').value,lF=document.getElementById('lg-level').value;
+  const runs=[...S.runs].filter(r=>(!aF||r.aId===aF)&&(!lF||r.lId===lF)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tb=document.getElementById('log-body');
+  if(!runs.length){tb.innerHTML='<tr><td colspan="11" class="notice">No runs match the filter</td></tr>';return;}
+  tb.innerHTML=runs.map((r,i)=>{
+    const a=S.analytes.find(x=>x.id===r.aId),l=S.levels.find(x=>x.id===r.lId);
+    const tgt=getTarget(r.aId,r.lId);
+    const allVals=S.runs.filter(x=>x.aId===r.aId&&x.lId===r.lId).map(x=>x.val);
+    const idx=S.runs.filter(x=>x.aId===r.aId&&x.lId===r.lId).findIndex(x=>x.id===r.id);
+    const rmAtPoint=idx>=0?calcRunningMean(allVals,10)[idx]:null;
+    const staticM=tgt?tgt.mean:null;
+    const drift=staticM&&rmAtPoint?((rmAtPoint-staticM)/staticM*100):null;
+    let zs='—',badge='<span class="badge bna">No tgt</span>',rowcls='';
+    if(tgt&&tgt.sd>0){const z=(r.val-tgt.mean)/tgt.sd;zs=z.toFixed(2);
+      if(Math.abs(z)>3){badge='<span class="badge bdn">Reject</span>';rowcls='rej';}
+      else if(Math.abs(z)>2){badge='<span class="badge bwn">Warning</span>';rowcls='wrn';}
+      else badge='<span class="badge bok">Pass</span>';}
+    const dt=r.date?new Date(r.date).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+    return`<tr class="${rowcls}"><td>${runs.length-i}</td><td title="${a?.name}">${a?.name||r.aId}</td><td>${l?.name||r.lId}</td><td>${r.val}</td><td>${zs}</td>
+      <td>${rmAtPoint!==null?rmAtPoint.toFixed(3):'—'}</td>
+      <td>${drift!==null?`<span class="badge ${Math.abs(drift)>5?'bdn':Math.abs(drift)>2?'bwn':'bok'}">${drift>0?'+':''}${drift.toFixed(1)}%</span>`:'—'}</td>
+      <td>${badge}</td><td>${dt}</td><td>${r.op||'—'}</td>
+      <td><button class="db" onclick="delRun('${r.id}')"><i class="ti ti-trash"></i></button></td></tr>`;
+  }).join('');
+}
+function delRun(id){S.runs=S.runs.filter(r=>r.id!==id);sv();renderLog();}
+function clearVisible(){
+  const aF=document.getElementById('lg-analyte').value,lF=document.getElementById('lg-level').value;
+  if(!confirm('Delete all visible runs?'))return;
+  if(!aF&&!lF)S.runs=[];
+  else S.runs=S.runs.filter(r=>(aF&&r.aId!==aF)||(lF&&r.lId!==lF));
+  sv();renderLog();
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function renderSummary(){
+  const rows=[];
+  S.analytes.forEach(a=>{S.levels.forEach(l=>{
+    const vals=S.runs.filter(r=>r.aId===a.id&&r.lId===l.id).map(r=>r.val);if(!vals.length)return;
+    const st=calcStats(vals);const tgt=getTarget(a.id,l.id);
+    const rm=calcRunningMean(vals,10);const curRM=rm[rm.length-1];
+    const sMean=tgt?tgt.mean:st.mean;const drift=sMean?((curRM-sMean)/sMean*100):0;
+    const bias=tgt?((st.mean-tgt.mean)/tgt.mean*100):null;
+    let wgCount=0;if(tgt&&tgt.sd>0){const wg=westgard(vals,tgt.mean,tgt.sd);wgCount=wg.viol.size+wg.rej.size;}
+    const slope=calcTrend(vals);
+    const trendTxt=Math.abs(slope)<0.001?'Stable':slope>0?'↑ Rising':'↓ Falling';
+    const trendCol=Math.abs(slope)<0.001?'var(--text-secondary)':slope>0?'var(--amber-text)':'var(--blue-text)';
+    rows.push(`<tr>
+      <td title="${a.name}">${a.name}</td><td>${l.name}</td><td>${vals.length}</td>
+      <td>${sMean.toFixed(3)}</td>
+      <td style="color:#085041;font-weight:500">${curRM.toFixed(3)}</td>
+      <td><span class="badge ${Math.abs(drift)>5?'bdn':Math.abs(drift)>2?'bwn':'bok'}">${drift>0?'+':''}${drift.toFixed(1)}%</span></td>
+      <td>${st.sd.toFixed(3)}</td>
+      <td><span class="badge ${st.cv>10?'bdn':st.cv>5?'bwn':'bok'}">${st.cv.toFixed(1)}%</span></td>
+      <td>${bias!==null?`<span class="badge ${Math.abs(bias)>5?'bwn':'bok'}">${bias>0?'+':''}${bias.toFixed(1)}%</span>`:'—'}</td>
+      <td>${wgCount>0?`<span class="badge bwn">${wgCount}</span>`:'<span class="badge bok">0</span>'}</td>
+      <td style="font-size:11px;color:${trendCol}">${trendTxt}</td>
+    </tr>`);
+  });});
+  document.getElementById('sum-body').innerHTML=rows.length?rows.join(''):'<tr><td colspan="11" class="notice">No data entered yet</td></tr>';
+}
+
+// ── ACTION ────────────────────────────────────────────────────────────────────
+function renderAction(){
+  const violations=[];
+  S.analytes.forEach(a=>{S.levels.forEach(l=>{
+    const vals=S.runs.filter(r=>r.aId===a.id&&r.lId===l.id).map(r=>r.val);if(!vals.length)return;
+    const tgt=getTarget(a.id,l.id);if(!tgt||!tgt.sd)return;
+    const wg=westgard(vals,tgt.mean,tgt.sd);
+    const rejRules=RDEFS.filter(rd=>wg.fired[rd.k]===true&&rd.type==='reject').map(rd=>rd.label);
+    const warnRules=RDEFS.filter(rd=>wg.fired[rd.k]===true&&rd.type==='warn').map(rd=>rd.label);
+    const rm=calcRunningMean(vals,10);const drift=((rm[rm.length-1]-tgt.mean)/tgt.mean*100);
+    if(rejRules.length)violations.push({a:a.name,l:l.name,type:'reject',rules:rejRules,drift});
+    else if(warnRules.length)violations.push({a:a.name,l:l.name,type:'warn',rules:warnRules,drift});
+    else if(Math.abs(drift)>5)violations.push({a:a.name,l:l.name,type:'drift',rules:[],drift});
+  });});
+  const el=document.getElementById('violation-list');
+  if(!violations.length){el.innerHTML='<div class="notice" style="color:var(--green-text);background:var(--green-bg);border-radius:var(--radius-md);padding:10px">No active violations — all analytes within acceptable limits</div>';return;}
+  el.innerHTML=violations.map(v=>{
+    const isR=v.type==='reject',isD=v.type==='drift';
+    const bg=isR?'var(--red-bg)':'var(--amber-bg)';
+    const txt=isR?'Reject':isD?'Drift alert':'Warning';
+    const desc=isR?'Stop testing — do not report patient results.':isD?`Running mean drifted ${v.drift>0?'+':''}${v.drift.toFixed(1)}% from static mean — investigate systematically.`:'Potential systematic error — monitor next run closely.';
+    return`<div style="padding:8px 10px;background:${bg};border-radius:var(--radius-md);margin-bottom:6px;font-size:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+        <span class="badge ${isR?'bdn':'bwn'}">${txt}</span>
+        <strong>${v.a}</strong><span style="color:var(--text-secondary)">${v.l}</span>
+      </div>
+      <div>${v.rules.length?'Rules: '+v.rules.join(', ')+' — ':''}</div>
+      <div>${desc}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+ld();
+// Demo data if empty
+const dA='albumin',dL='L2';
+if(!S.runs.length){
+  const dv=[4.1,4.3,4.2,4.0,4.4,4.3,4.1,4.5,4.6,4.7,4.8,4.9,5.0,4.2,3.5,4.3,4.1,4.2,4.4,4.3,4.2,3.5,4.6,4.1,4.3];
+  const b=new Date(Date.now()-dv.length*8*3600000);
+  dv.forEach((v,i)=>S.runs.push({id:'d'+i,aId:dA,lId:dL,val:v,date:new Date(b.getTime()+i*8*3600000).toISOString(),op:'Demo'}));
+  S.targets[gtk(dA,dL)]={mean:4.2,sd:0.18};S.curLevel='L2';sv();
+}
+popChartSels();
+document.getElementById('ch-analyte').value=dA;
+S.curAnalyte=dA;
+renderLevelTabs();
+renderChart();
+</script>
+</body>
+</html>
