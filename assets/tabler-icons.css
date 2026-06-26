@@ -1,2 +1,14 @@
 @font-face{font-family:"tabler-icons";font-style:normal;font-weight:400;src:url("tabler-icons.woff2") format("woff2"),url("tabler-icons.ttf") format("truetype")}
 .ti{font-family:"tabler-icons" !important;speak:none;font-style:normal;font-weight:normal;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.ti-chart-line:before{content:"\ea5c"}
+.ti-pencil:before{content:"\eb04"}
+.ti-adjustments:before{content:"\ea03"}
+.ti-list:before{content:"\eb6b"}
+.ti-table:before{content:"\eba1"}
+.ti-alert-triangle:before{content:"\ea06"}
+.ti-plus:before{content:"\eb0b"}
+.ti-upload:before{content:"\eb47"}
+.ti-device-floppy:before{content:"\eb62"}
+.ti-trash:before{content:"\eb41"}
+.ti-x:before{content:"\eb55"}
+.ti-circle-check:before{content:"\ea67"}
